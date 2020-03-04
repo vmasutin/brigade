@@ -23,6 +23,7 @@ const (
 // Config is config for setting Controller
 type Config struct {
 	Namespace                  string
+	WorkerNodePool             string
 	WorkerImage                string
 	WorkerCommand              string
 	WorkerPullPolicy           string

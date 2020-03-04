@@ -164,6 +164,28 @@ func NewWorkerPod(build, project *v1.Secret, config *Config) v1.Pod {
 		RestartPolicy:  v1.RestartPolicyNever,
 	}
 
+	if config.WorkerNodePool != "" {
+		log.Printf("Adding affinity, worker pods will be scheduled to nodepool %s", config.WorkerNodePool)
+		affinities := v1.Affinity{
+			NodeAffinity: &v1.NodeAffinity{
+				RequiredDuringSchedulingIgnoredDuringExecution: &v1.NodeSelector{
+					NodeSelectorTerms: []v1.NodeSelectorTerm{
+						{
+							MatchExpressions: []v1.NodeSelectorRequirement{
+								{
+									Key:      "agentpool",
+									Operator: v1.NodeSelectorOpIn,
+									Values:   []string{config.WorkerNodePool},
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+		spec.Affinity = &affinities
+	}
+
 	if scriptName := project.Data["defaultScriptName"]; len(scriptName) > 0 {
 		attachConfigMap(&spec, string(scriptName), "/etc/brigade-default-script")
 	}
