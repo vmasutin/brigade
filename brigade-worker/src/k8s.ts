@@ -501,14 +501,17 @@ export class JobRunner implements jobs.JobRunner {
       let matchExpressions = new kubernetes.V1NodeSelectorRequirement();
       matchExpressions.key = "agentpool";
       matchExpressions.operator = "In";
+      matchExpressions.values = [];
       matchExpressions.values.push(options.workerNodePool);
 
       // creating nodeSelectorTerm
       let nodeSelectorTerms = new kubernetes.V1NodeSelectorTerm();
+      nodeSelectorTerms.matchExpressions = [];
       nodeSelectorTerms.matchExpressions.push(matchExpressions);
 
       //creating nodeSelector
       let nodeSelector = new kubernetes.V1NodeSelector();
+      nodeSelector.nodeSelectorTerms = [];
       nodeSelector.nodeSelectorTerms.push(nodeSelectorTerms);
 
       // creating nodeAffinity
