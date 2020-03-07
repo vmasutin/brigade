@@ -92,7 +92,8 @@ export var options: KubernetesOptions = {
   serviceAccount: "brigade-worker",
   mountPath: "/src",
   defaultBuildStorageClass: "",
-  defaultCacheStorageClass: ""
+  defaultCacheStorageClass: "",
+  workerNodePool: ""
 };
 
 /**
@@ -103,6 +104,7 @@ export class KubernetesOptions {
   mountPath: string;
   defaultBuildStorageClass: string;
   defaultCacheStorageClass: string;
+  workerNodePool: string;
 }
 
 class K8sResult implements jobs.Result {
@@ -479,6 +481,47 @@ export class JobRunner implements jobs.JobRunner {
       for (let i = 0; i < this.runner.spec.containers.length; i++) {
         this.runner.spec.containers[i].securityContext.privileged = true;
       }
+    }
+
+    // Checking if we need to create affinity
+    // affinity:
+    //   nodeAffinity:
+    //     requiredDuringSchedulingIgnoredDuringExecution:
+    //       nodeSelectorTerms:
+    //       - matchExpressions:
+    //         - key: agentpool
+    //           operator: In
+    //           values:
+    //           - nodepool01
+
+    if (options.workerNodePool.length > 0) {
+      //creating affinity from the bottom up
+
+      // creating match expression
+      let matchExpressions = new kubernetes.V1NodeSelectorRequirement();
+      matchExpressions.key = "agentpool";
+      matchExpressions.operator = "In";
+      matchExpressions.values.push(options.workerNodePool);
+
+      // creating nodeSelectorTerm
+      let nodeSelectorTerms = new kubernetes.V1NodeSelectorTerm();
+      nodeSelectorTerms.matchExpressions.push(matchExpressions);
+
+      //creating nodeSelector
+      let nodeSelector = new kubernetes.V1NodeSelector();
+      nodeSelector.nodeSelectorTerms.push(nodeSelectorTerms);
+
+      // creating nodeAffinity
+      let nodeAffinity = new kubernetes.V1NodeAffinity();
+      nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution = nodeSelector;
+
+      let affinity = new kubernetes.V1Affinity();
+
+      // creating Affinity
+      affinity.nodeAffinity = nodeAffinity;
+
+      // modifying mod spec
+      this.runner.spec.affinity = affinity;
     }
     return this;
   }

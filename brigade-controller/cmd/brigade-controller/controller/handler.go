@@ -337,6 +337,10 @@ func workerEnv(project, build *v1.Secret, config *Config) []v1.EnvVar {
 		}
 	}
 
+	if config.WorkerNodePool != "" {
+		envs = append(envs, v1.EnvVar{Name: "BRIGADE_WORKER_NODEPOOL", Value: config.WorkerNodePool})
+	}
+
 	return envs
 }
 

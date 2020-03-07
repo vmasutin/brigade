@@ -167,5 +167,9 @@ if (process.env.BRIGADE_DEFAULT_CACHE_STORAGE_CLASS) {
   options.defaultCacheStorageClass = process.env.BRIGADE_DEFAULT_CACHE_STORAGE_CLASS
 }
 
+if (process.env.BRIGADE_WORKER_NODEPOOL) {
+  options.workerNodePool = process.env.BRIGADE_WORKER_NODEPOOL
+}
+
 // Run the app.
 new App(projectID, projectNamespace).run(e);
